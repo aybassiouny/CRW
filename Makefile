@@ -15,7 +15,18 @@ tests: tests/basic_smoketest tests/bulksync_functional_test tests/dynamicdata_sm
 echo:
 	echo $(HEADERS)
 clean:
-	@rm -rf bin/*
+	@rm -rf bin/example_apps/RW
+	@rm -rf *.html graphchi_metrics.txt
+	@rm -rf  *.numvertices 
+	@rm -rf *.adjidx 
+	@rm -rf *.adj 
+	@rm -rf *.size
+	@rm -rf *.bin
+	@rm -rf *.deltalog
+	@rm -rf *.vout
+	@rm -rf  *.intervals
+	@rm -rf blogcatalog.txt.dynamic..Z.e4B.1_2_blockdir_1048576
+	@rm -rf blogcatalog.txt.dynamic..Z.e4B.0_2_blockdir_1048576
 
 blocksplitter: src/preprocessing/blocksplitter.cpp $(HEADERS)
 	$(CPP) $(CPPFLAGS) src/preprocessing/blocksplitter.cpp -o bin/blocksplitter $(LINKERFLAGS)

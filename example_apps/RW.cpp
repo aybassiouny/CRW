@@ -1,41 +1,3 @@
-
-
-/**
- * @file
- * @author  Aapo Kyrola <akyrola@cs.cmu.edu>
- * @version 1.0
- *
- * @section LICENSE
- *
- * Copyright [2012] [Aapo Kyrola, Guy Blelloch, Carlos Guestrin / Carnegie Mellon University]
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- 
- *
- * @section DESCRIPTION
- *
- * Random walk simulation. From a set of source vertices, a set of 
- * random walks is started. Random walks walk via edges, and we use the
- * dynamic chivectors to support multiple walks in one edge. Each
- * vertex keeps track of the walks that pass by it, thus in the end
- * we have estimate of the "pagerank" of each vertex.
- *
- * Note, this version does not support 'resets' of random walks.
- * TODO: from each vertex, start new random walks with some probability,
- * and also terminate a walk with some probablity.
- *
- */
-
 #define DYNAMICEDATA 1
 
 #include <string>
@@ -56,8 +18,10 @@ typedef unsigned int VertexDataType;
 typedef chivector<vid_t> pvid_t;
 typedef pvid_t EdgeDataType;
 
-vector<chivector<vid_t>*> walks;
+vector< vector<vid_t> > walks;
  
+static int x =0;
+
 struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
 
     int steps_per_walk()
@@ -73,32 +37,31 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
      *  Vertex update function.
      */
     void update(graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) {
+        //cout<<(x++)<<" ";
         if (gcontext.iteration == 0) {
-            //if (is_source(vertex.id())) {
-            /*for(int i=0; i < walks_per_source(); i++) {
-                graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
-                if (outedge != NULL) {
-                    chivector<vid_t>* walk = new chivector < vid_t >;
-                    chivector<vid_t> * evector = outedge->get_vector();
-                    walk->add(vertex.id());
-                    walks.push_back(walk);
-                    evector->add(walks.size()-1);
-                    gcontext.scheduler->add_task(outedge->vertex_id()); // Schedule destination
-                }
-            }*/
-            //}
-            //vertex.set_data(0);
+            for(int i=0; i < walks_per_source(); i++) {
+                 graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
+                 if (outedge != NULL) {
+                     vector<vid_t> walk;
+                     chivector<vid_t> * evector = outedge->get_vector();
+                     walk.push_back(vertex.id()); //critical line
+                     //cout<<walk.size()<<endl;
+                     walks.push_back(walk);
+                     evector->add(walks.size()-1);
+                     gcontext.scheduler->add_task(outedge->vertex_id()); // Schedule destination
+                 }
+            }
         } else {
-            /*for(int i=0; i < vertex.num_inedges(); i++) {
+            for(int i=0; i < vertex.num_inedges(); i++) {
                 graphchi_edge<EdgeDataType> * edge = vertex.inedge(i);
                 chivector<vid_t> *invector = edge->get_vector();
                 for (int j = 0; j < invector->size(); j++){
                     //vid_t curwalk = ;
-                    if (walks[invector->get(j)]->size() < steps_per_walk()){
+                    if (walks[invector->get(j)].size() < steps_per_walk()){
                         graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
                         if (outedge != NULL) {
                             chivector<vid_t> *outvector = outedge->get_vector();
-                            walks[invector->get(j)]->add(vertex.id());
+                            walks[invector->get(j)].push_back(vertex.id());
                             //walk.push_back(vertex.id());
                             outvector->add(invector->get(j));
                             gcontext.scheduler->add_task(outedge->vertex_id()); // Schedule destination
@@ -106,7 +69,7 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
                     }
                 }
                 invector->clear();
-            }*/
+            }
             //vertex.set_data(vertex.get_data() + num_walks);
         }
     }
@@ -167,13 +130,14 @@ int main(int argc, const char ** argv) {
     
     /* List top 20 */
     //std::vector< vertex_value<VertexDataType> > top = get_top_vertices<VertexDataType>(filename, ntop);
-    std::cout << "Print top 20 vertices: " << std::endl;
+    //std::cout << "Print top 20 vertices: " << std::endl;
+    
     for(int i=0; i < (int) walks.size(); i++) {
-        for (int j = 0; j < walks[i]->size(); j++)
-            std::cout << walks[i]->get(j)<<" ";
+        for (int j = 0; j < walks[i].size(); j++)
+            std::cout << walks[i][j]<<" ";
         std::cout << std::endl;
     }
-
+    cout<< walks.size()<<" "<<walks[0].size()<<endl;
     /* Report execution metrics */
     metrics_report(m);
     return 0;
