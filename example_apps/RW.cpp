@@ -21,16 +21,16 @@ typedef pvid_t EdgeDataType;
 vector< vector<vid_t> > walks;
  
 static int x =0;
-
+pthread_mutex_t lock;
 struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
 
     int steps_per_walk()
     {
-        return 5;
+        return 50;
     }
     int walks_per_source() 
     {
-        return 1;
+        return 20;
     }
     
     /**
@@ -45,8 +45,9 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
                      vector<vid_t> walk;
                      chivector<vid_t> * evector = outedge->get_vector();
                      walk.push_back(vertex.id()); //critical line
-                     //cout<<walk.size()<<endl;
+                     pthread_mutex_lock(&lock);
                      walks.push_back(walk);
+                     pthread_mutex_unlock(&lock);
                      evector->add(walks.size()-1);
                      gcontext.scheduler->add_task(outedge->vertex_id()); // Schedule destination
                  }
@@ -70,7 +71,6 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
                 }
                 invector->clear();
             }
-            //vertex.set_data(vertex.get_data() + num_walks);
         }
     }
     
@@ -113,7 +113,7 @@ int main(int argc, const char ** argv) {
     
     /* Basic arguments for application */
     std::string filename = get_option_string("file");  // Base filename
-    int niters           = get_option_int("niters", 20); // Number of iterations
+    int niters           = get_option_int("niters", 100); // Number of iterations
     bool scheduler       = true;                       // Whether to use selective scheduling
     
     /* Detect the number of shards or preprocess an input to create them */
@@ -132,11 +132,11 @@ int main(int argc, const char ** argv) {
     //std::vector< vertex_value<VertexDataType> > top = get_top_vertices<VertexDataType>(filename, ntop);
     //std::cout << "Print top 20 vertices: " << std::endl;
     
-    for(int i=0; i < (int) walks.size(); i++) {
-        for (int j = 0; j < walks[i].size(); j++)
-            std::cout << walks[i][j]<<" ";
-        std::cout << std::endl;
-    }
+    // for(int i=0; i < (int) walks.size(); i++) {
+    //     for (int j = 0; j < walks[i].size(); j++)
+    //         std::cout << walks[i][j]<<" ";
+    //     std::cout << std::endl;
+    // }
     cout<< walks.size()<<" "<<walks[0].size()<<endl;
     /* Report execution metrics */
     metrics_report(m);
