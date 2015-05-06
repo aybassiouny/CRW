@@ -6,6 +6,7 @@
 #include "api/dynamicdata/chivector.hpp"
 #include "util/toplist.hpp"
 #include <utility>
+#include <fstream>
 
 using namespace graphchi;
 using namespace std;
@@ -132,12 +133,14 @@ int main(int argc, const char ** argv) {
     //std::vector< vertex_value<VertexDataType> > top = get_top_vertices<VertexDataType>(filename, ntop);
     //std::cout << "Print top 20 vertices: " << std::endl;
     
-    // for(int i=0; i < (int) walks.size(); i++) {
-    //     for (int j = 0; j < walks[i].size(); j++)
-    //         std::cout << walks[i][j]<<" ";
-    //     std::cout << std::endl;
-    // }
-    cout<< walks.size()<<" "<<walks[0].size()<<endl;
+    ofstream out("out.txt");
+    for(int i=0; i < (int) walks.size(); i++) {
+        for (int j = 0; j < walks[i].size(); j++)
+            out << walks[i][j]<<" ";
+        out << std::endl;
+    }
+    out<< walks.size()<<" "<<walks[0].size()<<endl;
+    out.close();
     /* Report execution metrics */
     metrics_report(m);
     return 0;

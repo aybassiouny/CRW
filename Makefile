@@ -1,7 +1,7 @@
 INCFLAGS = -I/usr/local/include/ -I./src/
 
 CPP = g++
-CPPFLAGS = -g -O3 $(INCFLAGS)  -fopenmp -Wall -Wno-strict-aliasing  -m64
+CPPFLAGS = -g -O3 -fdiagnostics-color $(INCFLAGS)  -fopenmp -Wall -Wno-strict-aliasing  -m64
 LINKERFLAGS = -lz
 DEBUGFLAGS = -g -ggdb $(INCFLAGS)
 HEADERS=$(shell find src/ -name '*.hpp')
