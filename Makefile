@@ -1,7 +1,7 @@
 INCFLAGS = -I/usr/local/include/ -I./src/
 
 CPP = g++
-CPPFLAGS = -g -O3 $(INCFLAGS)  -fopenmp -Wall -Wno-strict-aliasing  -m64
+CPPFLAGS = -g -O3 -w -fdiagnostics-color $(INCFLAGS)  -fopenmp -Wno-strict-aliasing  -m64
 LINKERFLAGS = -lz
 DEBUGFLAGS = -g -ggdb $(INCFLAGS)
 HEADERS=$(shell find src/ -name '*.hpp')
@@ -16,7 +16,7 @@ echo:
 	echo $(HEADERS)
 clean:
 	@rm -rf bin/example_apps/RW
-	@rm -rf *.html graphchi_metrics.txt
+	@rm -rf *.html graphchi_metrics.txt log.txt
 	@rm -rf  *.numvertices 
 	@rm -rf *.adjidx 
 	@rm -rf *.adj 

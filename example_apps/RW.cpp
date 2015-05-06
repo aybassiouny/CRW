@@ -6,6 +6,7 @@
 #include "api/dynamicdata/chivector.hpp"
 #include "util/toplist.hpp"
 #include <utility>
+#include <algorithm> 
 
 using namespace graphchi;
 using namespace std;
@@ -37,33 +38,27 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
      *  Vertex update function.
      */
     void update(graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) {
-        //cout<<(x++)<<" ";
         if (gcontext.iteration == 0) {
             for(int i=0; i < walks_per_source(); i++) {
                  graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
                  if (outedge != NULL) {
                      vector<vid_t> walk;
                      chivector<vid_t> * evector = outedge->get_vector();
-                     walk.push_back(vertex.id()); //critical line
-                     pthread_mutex_lock(&lock);
-                     walks.push_back(walk);
-                     pthread_mutex_unlock(&lock);
-                     evector->add(walks.size()-1);
+                     evector->add(x);
                      gcontext.scheduler->add_task(outedge->vertex_id()); // Schedule destination
                  }
             }
+            x++;
         } else {
             for(int i=0; i < vertex.num_inedges(); i++) {
                 graphchi_edge<EdgeDataType> * edge = vertex.inedge(i);
                 chivector<vid_t> *invector = edge->get_vector();
                 for (int j = 0; j < invector->size(); j++){
-                    //vid_t curwalk = ;
                     if (walks[invector->get(j)].size() < steps_per_walk()){
                         graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
                         if (outedge != NULL) {
                             chivector<vid_t> *outvector = outedge->get_vector();
                             walks[invector->get(j)].push_back(vertex.id());
-                            //walk.push_back(vertex.id());
                             outvector->add(invector->get(j));
                             gcontext.scheduler->add_task(outedge->vertex_id()); // Schedule destination
                         }
@@ -113,6 +108,7 @@ int main(int argc, const char ** argv) {
     
     /* Basic arguments for application */
     std::string filename = get_option_string("file");  // Base filename
+    int numV = get_option_int("numV");  
     int niters           = get_option_int("niters", 100); // Number of iterations
     bool scheduler       = true;                       // Whether to use selective scheduling
     
@@ -120,8 +116,25 @@ int main(int argc, const char ** argv) {
     bool preexisting_shards;
     int nshards          = convert_if_notexists<vid_t>(filename, get_option_string("nshards", "auto"), preexisting_shards);
     
+    
+
+
     /* Run */
     RandomWalkProgram program;
+    
+    //initialize walks
+
+    int numWalks= program.walks_per_source()*numV;
+    cout<<"numWalks is "<<numWalks<<endl;
+
+    for(int i=0; i<numV; i++){
+        vector<vid_t> walk; walk.push_back(i);
+        for(int j=0; j<program.walks_per_source(); j++)
+            walks.push_back(walk);
+    }
+        
+
+    //go
     graphchi_engine<VertexDataType, EdgeDataType> engine(filename, nshards, scheduler, m);
     if (preexisting_shards) {
         engine.reinitialize_edge_data(0);
@@ -132,12 +145,14 @@ int main(int argc, const char ** argv) {
     //std::vector< vertex_value<VertexDataType> > top = get_top_vertices<VertexDataType>(filename, ntop);
     //std::cout << "Print top 20 vertices: " << std::endl;
     
-    // for(int i=0; i < (int) walks.size(); i++) {
-    //     for (int j = 0; j < walks[i].size(); j++)
-    //         std::cout << walks[i][j]<<" ";
-    //     std::cout << std::endl;
-    // }
-    cout<< walks.size()<<" "<<walks[0].size()<<endl;
+    ofstream out("walks.txt");;
+    for(int i=0; i < min(int(walks.size()), 100); i++) {
+        for (int j = 0; j < walks[i].size(); j++)
+            out << walks[i][j]<<" ";
+        out << std::endl;
+    }
+    out.close();
+    out<< walks.size()<<" "<<walks[0].size()<<endl;
     /* Report execution metrics */
     metrics_report(m);
     return 0;
