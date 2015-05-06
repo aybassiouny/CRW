@@ -16,7 +16,7 @@ echo:
 	echo $(HEADERS)
 clean:
 	@rm -rf bin/example_apps/RW
-	@rm -rf *.html graphchi_metrics.txt log.txt
+	@rm -rf *.html graphchi_metrics.txt log.txt walks.txt out.txt
 	@rm -rf  *.numvertices 
 	@rm -rf *.adjidx 
 	@rm -rf *.adj 
