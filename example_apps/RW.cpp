@@ -47,8 +47,9 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
                      evector->add(x);
                      gcontext.scheduler->add_task(outedge->vertex_id()); // Schedule destination
                  }
+                 else cout<<"WTF"<<endl;
+                 x++;
             }
-            x++;
         } else {
             for(int i=0; i < vertex.num_inedges(); i++) {
                 graphchi_edge<EdgeDataType> * edge = vertex.inedge(i);

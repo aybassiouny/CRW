@@ -25,8 +25,8 @@ clean:
 	@rm -rf *.deltalog
 	@rm -rf *.vout
 	@rm -rf  *.intervals
-	@rm -rf blogcatalog.txt.dynamic..Z.e4B.1_2_blockdir_1048576
-	@rm -rf blogcatalog.txt.dynamic..Z.e4B.0_2_blockdir_1048576
+	@rm -rf blogcatalog.txt.dynamic..Z.e4B.1_2_blockdir_1048576 simpAdjList.txt.dynamic..Z.e4B.1_2_blockdir_1048576
+	@rm -rf blogcatalog.txt.dynamic..Z.e4B.0_2_blockdir_1048576 simpAdjList.txt.dynamic..Z.e4B.0_2_blockdir_1048576
 
 blocksplitter: src/preprocessing/blocksplitter.cpp $(HEADERS)
 	$(CPP) $(CPPFLAGS) src/preprocessing/blocksplitter.cpp -o bin/blocksplitter $(LINKERFLAGS)
