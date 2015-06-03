@@ -41,6 +41,8 @@
 #include <vector>
 #include <sys/time.h>
 #include <algorithm>
+#include <map>
+#include <vector>
 
 #include "api/chifilenames.hpp"
 #include "api/graph_objects.hpp"
@@ -56,6 +58,8 @@
 #include "shards/slidingshard.hpp"
 #include "util/pthread_tools.hpp"
 #include "output/output.hpp"
+
+using namespace std;
 
 namespace graphchi {
     
@@ -124,6 +128,11 @@ namespace graphchi {
         bool reset_vertexdata;
         bool save_edgesfiles_after_inmemmode;
         
+        //ADDITION
+        std::multimap<int, std::vector<int> > walks;
+		vector<vector<int> > completedWalks;
+        const int _walks_per_source = 10, 
+            _steps_per_walk = 40;
         /* Outputs */
         std::vector<ioutput<VertexDataType, EdgeDataType> *> outputs;
         
@@ -411,11 +420,11 @@ namespace graphchi {
                 for(int idx=0; idx <= (int)sub_interval_len; idx++) random_order[idx] = idx;
                 std::random_shuffle(random_order.begin(), random_order.end());
             }
-            map<int, vector<int>> walks;
             do {
+                //ADDITION
                 int *inc, *outc, *minisch, *res;
-                vector<int> goodV;
-                vector<svertex_t> actualV;
+                std::vector<int> goodV;
+                std::vector<svertex_t> actualV;
                 int rptV=0, mxrptV = 0;
                 for(int idx=0; idx <= (int)sub_interval_len; idx++) {
                     vid_t vid = sub_interval_st + (randomization ? random_order[idx] : idx);
@@ -423,37 +432,52 @@ namespace graphchi {
                     if (vertices[vid - sub_interval_st].scheduled){
                         int curV = vid - sub_interval_st; 
                         goodV.push_back(curV);
-                        int rptC = walks.count(curV);
+                        int rptC = walks.count(vid);
                         if(rptC>0) rptV++;
-                        mxrptV = max(mxrptV, rptV);
+						mxrptV = std::max(mxrptV, rptC);
                     }
                         //userprogram.update(v, chicontext);                    
                 }
                 int numgoodV = goodV.size();
-                actualV.resize(numgoodV);
-                intc = new int[numgoodV]; 
+				actualV.reserve(numgoodV);
+                inc = new int[numgoodV]; 
                 outc = new int[numgoodV];
-                minisch = new int[rptV];
+				minisch = new int[numgoodV];
                 res = new int[numgoodV*mxrptV];
-                fill(res, res+numgoodV*mxrptV, -1); 
+                std::fill(res, res+numgoodV*mxrptV, -1);
                 for(int i=0; i<numgoodV; i++){
                     actualV.push_back(vertices[goodV[i]]);
                     inc[i] = vertices[goodV[i]].inc;
                     outc[i] = vertices[goodV[i]].outc;
-                    //res[i] = new int[mxrptV];
-                    int rptC = walks.count(actualV[i]);
+                    int srchVal = goodV[i]+sub_interval_st;
+                    int rptC = walks.count(srchVal);
                     minisch[i] = rptC;
                 }
-               update<<<1000,1000>>> (int *inc, int *outc, int *minisch, int **res )
+               userprogram.update2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
                for(int i=0; i<numgoodV; i++){
                     if(minisch[i]>0){
-                        gcontext.scheduler->add_task(rpt[i]);
-                        rpt[]
+                        for(int j=0; j<minisch[i]; j++){
+                            int srchVal = goodV[i]+sub_interval_st;
+                            auto it = walks.find(srchVal);
+                            std::vector<int> tempV = it->second;
+							auto myE = actualV[i].outedge(res[i*mxrptV + j]);
+                            int resV = myE->vertex_id();
+                            tempV.push_back(resV);
+							if (tempV.size() == _steps_per_walk)
+								completedWalks.push_back(tempV);
+							else{
+								scheduler->add_task(resV);
+								walks.insert(std::make_pair(resV, tempV));
+							}
+							walks.erase(it);
+                        }
                     }
                } 
+
                delete[] inc;
                delete[] outc;
-                //omp_set_num_threads(exec_threads);
+               delete[] minisch;
+               delete[] res;
                 // update(int *inc, int *outc, int *rpt, int **res )/
         //#pragma omp parallel sections 
         //             {
@@ -819,8 +843,17 @@ namespace graphchi {
             
             //ADDITONS
             rpt = new int[num_vertices()]; 
-            fill(rpt, rpt+num_vertices(), 0);
+            std::fill(rpt, rpt+num_vertices(), 0);
             /* Main loop */
+            
+            //ADDITION
+            for(int i=0; i<num_vertices(); i++){
+                std::vector<int> tempV;
+                tempV.push_back(i);
+                for(int j=0; j<_walks_per_source; j++)
+                    walks.insert(std::make_pair(i, tempV));
+            }
+            
             for(iter=0; iter < niters; iter++) {
                 logstream(LOG_INFO) << "Start iteration: " << iter << std::endl;
                 
