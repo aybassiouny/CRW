@@ -42,7 +42,8 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
         if (gcontext.iteration == 0) {
             
             for(int i=0; i < walks_per_source(); i++) {
-                 graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
+                 //graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
+                graphchi_edge<EdgeDataType> * outedge = vertex.outedge(cudaOut);
                  if (outedge != NULL) {
                      vector<vid_t> walk;
                      chivector<vid_t> * evector = outedge->get_vector();
@@ -54,10 +55,7 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
                  }
                  else cout<<"WTF"<<endl;
             }
-            
-
         } else {
-            
             for(int i=0; i < vertex.num_inedges(); i++) {
                 graphchi_edge<EdgeDataType> * edge = vertex.inedge(i);
                 chivector<vid_t> *invector = edge->get_vector();
@@ -76,7 +74,6 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
                         else cout<<"WTF"<<endl;
                     }
                 }
-                
                 invector->clear();
             }
             
