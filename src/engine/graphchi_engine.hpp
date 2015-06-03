@@ -408,6 +408,7 @@ namespace graphchi {
                 for(int idx=0; idx <= (int)sub_interval_len; idx++) random_order[idx] = idx;
                 std::random_shuffle(random_order.begin(), random_order.end());
             }
+            std::cout<<"enable_deterministic_parallelism: "<<enable_deterministic_parallelism<<std::endl;
              
             do {
                 omp_set_num_threads(exec_threads);
@@ -420,8 +421,9 @@ namespace graphchi {
                         for(int idx=0; idx <= (int)sub_interval_len; idx++) {
                                 vid_t vid = sub_interval_st + (randomization ? random_order[idx] : idx);
                                 svertex_t & v = vertices[vid - sub_interval_st];
-                                
+                                std::cout<<exec_threads<<" "<< v.parallel_safe<<std::endl;
                                 if (exec_threads == 1 || v.parallel_safe) {
+                                    std::cout<<"is this visited?"<<std::endl;
                                     if (!disable_vertexdata_storage)
                                         v.dataptr = vertex_data_handler->vertex_data_ptr(vid);
                                     if (v.scheduled) 
@@ -437,6 +439,7 @@ namespace graphchi {
                                     vid_t vid = sub_interval_st + (randomization ? random_order[idx] : idx);
                                     svertex_t & v = vertices[vid - sub_interval_st];
                                     if (!v.parallel_safe && v.scheduled) {
+                                        std::cout<<"what about this??"<<std::endl;
                                         if (!disable_vertexdata_storage)
                                             v.dataptr = vertex_data_handler->vertex_data_ptr(vid);
                                         userprogram.update(v, chicontext);
