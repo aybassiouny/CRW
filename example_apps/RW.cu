@@ -25,50 +25,6 @@ const int _walks_per_source = 10,
             _steps_per_walk = 5;
 
 
-__global__ void update(int *inc, int *outc, int *rpt, int **res )//int ***vData,int *Voutc, int** res)
-    //graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) 
-{
-    int curVer = cudastuff;
-    for(int i=0; i<rpt[curVer]; i++){
-        int *edge_rand =  new int; 
-        *edge_rand = rand()%outc[curVer];
-        res[curVer][i] = *edge_rand;
-        atomicAdd(rpt+(*edge_rand), 1);
-    }
-    
-    // if (iter == 0) {
-    //     for(int i=0; i < _walks_per_source; i++) {
-    //         int edge_rand = rand()%outc;
-    //          //graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
-    //          vector<vid_t> walk;
-    //          chivector<vid_t> * evector = outedge->get_vector();
-    //          int x = vertex.id()*walks_per_source()+i;
-    //          evector->add(x);
-    //          //return outedge->vertex_id(); // Schedule destination
-    //     }
-    // } else {
-    //     for(int i=0; i < inc; i++) {
-    //         graphchi_edge<EdgeDataType> * edge = vertex.inedge(i);
-    //         chivector<vid_t> *invector = edge->get_vector();
-            
-    //         for (int j = 0; j < invector->size(); j++){
-    //             if (walks[invector->get(j)].size() < steps_per_walk()){
-    //                 graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
-    //                 chivector<vid_t> *outvector = outedge->get_vector();
-                    
-    //                 walks[invector->get(j)].push_back(vertex.id());
-                    
-    //                 outvector->add(invector->get(j));
-    //                 gcontext.scheduler->add_task(outedge->vertex_id()); // Schedule destination
-    //             }
-    //         }
-    //         invector->clear();
-    //     }
-        
-    // }
-    
-}
-
 
 //static int x =0;
 pthread_mutex_t lock;
@@ -86,7 +42,50 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
     /**
      *  Vertex update function.
      */
-    void update(graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) {
+     __global__ void update(int *inc, int *outc, int *rpt, int **res )//int ***vData,int *Voutc, int** res)
+        //graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) 
+    {
+        int curVer = blockIdx.x * blockDim.x + threadIdx.x;
+        for(int i=0; i<rpt[curVer]; i++){
+            int *edge_rand =  new int; 
+            *edge_rand = rand()%outc[curVer];
+            res[curVer][i] = *edge_rand;
+            atomicAdd(rpt+(*edge_rand), 1);
+        }
+        
+        // if (iter == 0) {
+        //     for(int i=0; i < _walks_per_source; i++) {
+        //         int edge_rand = rand()%outc;
+        //          //graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
+        //          vector<vid_t> walk;
+        //          chivector<vid_t> * evector = outedge->get_vector();
+        //          int x = vertex.id()*walks_per_source()+i;
+        //          evector->add(x);
+        //          //return outedge->vertex_id(); // Schedule destination
+        //     }
+        // } else {
+        //     for(int i=0; i < inc; i++) {
+        //         graphchi_edge<EdgeDataType> * edge = vertex.inedge(i);
+        //         chivector<vid_t> *invector = edge->get_vector();
+                
+        //         for (int j = 0; j < invector->size(); j++){
+        //             if (walks[invector->get(j)].size() < steps_per_walk()){
+        //                 graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
+        //                 chivector<vid_t> *outvector = outedge->get_vector();
+                        
+        //                 walks[invector->get(j)].push_back(vertex.id());
+                        
+        //                 outvector->add(invector->get(j));
+        //                 gcontext.scheduler->add_task(outedge->vertex_id()); // Schedule destination
+        //             }
+        //         }
+        //         invector->clear();
+        //     }
+            
+        // }
+        
+    }
+    /*void update(graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) {
         
         if (gcontext.iteration == 0) {
             
@@ -127,7 +126,7 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
             }
             
         }
-    }
+    }*/
     
     /**
      * Called before an iteration starts.

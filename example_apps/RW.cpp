@@ -21,35 +21,50 @@ typedef pvid_t EdgeDataType;
 
 vector< vector<vid_t> > walks;
  
+const int _walks_per_source = 10, 
+            _steps_per_walk = 5;
+
+
+
 //static int x =0;
 pthread_mutex_t lock;
 struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
 
     int steps_per_walk()
     {
-        return 10;
+        return _steps_per_walk;
     }
     int walks_per_source() 
     {
-        return 5;
+        return _walks_per_source;
     }
     
     /**
      *  Vertex update function.
      */
-    void update(graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) {
+     __global__ void update(int *inc, int *outc, int *rpt, int **res )//int ***vData,int *Voutc, int** res)
+        //graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) 
+    {
+        int curVer = blockIdx.x * blockDim.x + threadIdx.x;
+        for(int i=0; i<rpt[curVer]; i++){
+            int *edge_rand =  new int; 
+            *edge_rand = rand()%outc[curVer];
+            res[curVer][i] = *edge_rand;
+            //atomicAdd(rpt+(*edge_rand), 1);
+        }        
+    }
+    /*void update(graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) {
         
         if (gcontext.iteration == 0) {
             
             for(int i=0; i < walks_per_source(); i++) {
-                 //graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
-                graphchi_edge<EdgeDataType> * outedge = vertex.outedge(cudaOut);
+                 graphchi_edge<EdgeDataType> * outedge = vertex.random_outedge();
                  if (outedge != NULL) {
                      vector<vid_t> walk;
                      chivector<vid_t> * evector = outedge->get_vector();
                      int x = vertex.id()*walks_per_source()+i;
                      evector->add(x);
-                     cout<<vertex.id()<<" "<<x<<endl;
+                     //cout<<vertex.id()<<" "<<x<<endl;
                      gcontext.scheduler->add_task(outedge->vertex_id()); // Schedule destination
                      
                  }
@@ -74,11 +89,12 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
                         else cout<<"WTF"<<endl;
                     }
                 }
+                
                 invector->clear();
             }
             
         }
-    }
+    }*/
     
     /**
      * Called before an iteration starts.
@@ -148,14 +164,14 @@ int main(int argc, const char ** argv) {
         for(int j=0; j<program.walks_per_source(); j++)
             walks.push_back(walk);
     }
-    for(int i=0; i < min(int(walks.size()), 1000); i++) {
-        for (int j = 0; j < walks[i].size(); j++)
-            out << walks[i][j]<<" ";
-        out << std::endl;
-    }
-    out<<"#################################################################"<<endl;
-    out<<"#################################################################"<<endl;
-    out<<"#################################################################"<<endl;
+    // for(int i=0; i < min(int(walks.size()), 1000); i++) {
+    //     for (int j = 0; j < walks[i].size(); j++)
+    //         out << walks[i][j]<<" ";
+    //     out << std::endl;
+    // }
+    // out<<"#################################################################"<<endl;
+    // out<<"#################################################################"<<endl;
+    // out<<"#################################################################"<<endl;
 
     //go
     graphchi_engine<VertexDataType, EdgeDataType> engine(filename, nshards, scheduler, m);

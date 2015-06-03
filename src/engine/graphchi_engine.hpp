@@ -40,6 +40,7 @@
 #include <omp.h>
 #include <vector>
 #include <sys/time.h>
+#include <algorithm>
 
 #include "api/chifilenames.hpp"
 #include "api/graph_objects.hpp"
@@ -113,6 +114,7 @@ namespace graphchi {
         int iter;
         int niters;
         int exec_interval;
+        int *rpt;
         size_t nupdates;
         size_t nedges;
         size_t work; // work is the number of edges processed
@@ -395,6 +397,7 @@ namespace graphchi {
         
         virtual void exec_updates(GraphChiProgram<VertexDataType, EdgeDataType, svertex_t> &userprogram,
                           std::vector<svertex_t> &vertices) {
+                          
             metrics_entry me = m.start_time();
             size_t nvertices = vertices.size();
             if (!enable_deterministic_parallelism) {
@@ -408,22 +411,48 @@ namespace graphchi {
                 for(int idx=0; idx <= (int)sub_interval_len; idx++) random_order[idx] = idx;
                 std::random_shuffle(random_order.begin(), random_order.end());
             }
-             
+            map<int, vector<int>> walks;
             do {
-                vector<svertex_t> goodV;
+                int *inc, *outc, *minisch, *res;
+                vector<int> goodV;
+                vector<svertex_t> actualV;
+                int rptV=0, mxrptV = 0;
                 for(int idx=0; idx <= (int)sub_interval_len; idx++) {
                     vid_t vid = sub_interval_st + (randomization ? random_order[idx] : idx);
-                    svertex_t & v = vertices[vid - sub_interval_st];
-                    
-                    if (exec_threads == 1 || v.parallel_safe) {
-                        if (!disable_vertexdata_storage)
-                            v.dataptr = vertex_data_handler->vertex_data_ptr(vid);
-                        if (v.scheduled) 
-                            //userprogram.update(v, chicontext);
-                            goodV.push_back(v);
+                    //svertex_t & v = vertices[vid - sub_interval_st];
+                    if (vertices[vid - sub_interval_st].scheduled){
+                        int curV = vid - sub_interval_st; 
+                        goodV.push_back(curV);
+                        int rptC = walks.count(curV);
+                        if(rptC>0) rptV++;
+                        mxrptV = max(mxrptV, rptV);
                     }
+                        //userprogram.update(v, chicontext);                    
                 }
-               
+                int numgoodV = goodV.size();
+                actualV.resize(numgoodV);
+                intc = new int[numgoodV]; 
+                outc = new int[numgoodV];
+                minisch = new int[rptV];
+                res = new int[numgoodV*mxrptV];
+                fill(res, res+numgoodV*mxrptV, -1); 
+                for(int i=0; i<numgoodV; i++){
+                    actualV.push_back(vertices[goodV[i]]);
+                    inc[i] = vertices[goodV[i]].inc;
+                    outc[i] = vertices[goodV[i]].outc;
+                    //res[i] = new int[mxrptV];
+                    int rptC = walks.count(actualV[i]);
+                    minisch[i] = rptC;
+                }
+               update<<<1000,1000>>> (int *inc, int *outc, int *minisch, int **res )
+               for(int i=0; i<numgoodV; i++){
+                    if(minisch[i]>0){
+                        gcontext.scheduler->add_task(rpt[i]);
+                        rpt[]
+                    }
+               } 
+               delete[] inc;
+               delete[] outc;
                 //omp_set_num_threads(exec_threads);
                 // update(int *inc, int *outc, int *rpt, int **res )/
         //#pragma omp parallel sections 
@@ -788,7 +817,9 @@ namespace graphchi {
             /* Print configuration */
             print_config();
             
-            
+            //ADDITONS
+            rpt = new int[num_vertices()]; 
+            fill(rpt, rpt+num_vertices(), 0);
             /* Main loop */
             for(iter=0; iter < niters; iter++) {
                 logstream(LOG_INFO) << "Start iteration: " << iter << std::endl;
