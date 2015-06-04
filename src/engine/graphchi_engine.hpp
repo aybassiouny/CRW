@@ -59,6 +59,9 @@
 #include "util/pthread_tools.hpp"
 #include "output/output.hpp"
 
+#include <cuda_runtime.h>
+#include "updateFunc.h"
+
 using namespace std;
 
 namespace graphchi {
@@ -453,8 +456,9 @@ namespace graphchi {
                     int rptC = walks.count(srchVal);
                     minisch[i] = rptC;
                 }
-               userprogram.update2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
-               for(int i=0; i<numgoodV; i++){
+                callUpdate2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
+                //userprogram.update2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
+                for(int i=0; i<numgoodV; i++){
                     if(minisch[i]>0){
                         for(int j=0; j<minisch[i]; j++){
                             int srchVal = goodV[i]+sub_interval_st;
@@ -473,7 +477,8 @@ namespace graphchi {
                         }
                     }
                } 
-
+               
+               
                delete[] inc;
                delete[] outc;
                delete[] minisch;

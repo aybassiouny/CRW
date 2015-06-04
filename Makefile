@@ -1,10 +1,13 @@
-INCFLAGS = -I/usr/local/include/ -I./src/
+INCFLAGS = -I/usr/local/include/ -I./src/ -I./example_apps
 
-CPP = g++
+#CPP = g++
+CPP = nvcc -gencode arch=compute_20,code=compute_20
+
 #CPPFLAGS = -g -O3 -w -fdiagnostics-color $(INCFLAGS)  -fopenmp -Wno-strict-aliasing  -m64 -fdump-class-hierarchy-all
-CPPFLAGS = -w -fdiagnostics-color $(INCFLAGS)  -fopenmp -Wno-strict-aliasing  -m64  -std=c++11
+#CPPFLAGS = -w -fdiagnostics-color $(INCFLAGS)  -fopenmp -Wno-strict-aliasing  -m64  -std=c++11
+CPPFLAGS = -w -c $(INCFLAGS)  -Xcompiler -fdiagnostics-color -Xcompiler -fopenmp -Xcompiler -Wno-strict-aliasing  -m64 -Xcompiler -std=c++11
 LINKERFLAGS = -lz
-DEBUGFLAGS = -g -ggdb $(INCFLAGS)
+DEBUGFLAGS = -g $(INCFLAGS)
 HEADERS=$(shell find src/ -name '*.hpp')
 
 
@@ -18,7 +21,7 @@ echo:
 	echo $(HEADERS)
 clean:
 	@rm -rf bin/example_apps/RW
-	@rm -rf *.html graphchi_metrics.txt log.txt walks.txt out.txt
+	@rm -rf *.html graphchi_metrics.txt log.txt walks.txt out.txt *.o RWC
 	@rm -rf  *.numvertices 
 	@rm -rf *.adjidx 
 	@rm -rf *.adj 
@@ -37,9 +40,11 @@ sharder_basic: src/preprocessing/sharder_basic.cpp $(HEADERS)
 	@mkdir -p bin
 	$(CPP) $(CPPFLAGS) src/preprocessing/sharder_basic.cpp -o bin/sharder_basic $(LINKERFLAGS)
 
+#example_apps/% : example_apps/%.cpp $(HEADERS)
 example_apps/% : example_apps/%.cpp $(HEADERS)
 	@mkdir -p bin/$(@D)
-	$(CPP) $(CPPFLAGS) $(DEBUGFLAGS) -Iexample_apps/ $@.cpp -o bin/$@ $(LINKERFLAGS) 
+	$(CPP) $(CPPFLAGS) $(DEBUGFLAGS) -Iexample_apps/  $@.cpp $(LINKERFLAGS) 
+	#$(CPP) $(CPPFLAGS) $(DEBUGFLAGS) -Iexample_apps/  $@.cpp -o bin/$@ $(LINKERFLAGS) 
 
 
 

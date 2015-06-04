@@ -7,6 +7,7 @@
 #include "util/toplist.hpp"
 #include <utility>
 #include <algorithm> 
+#include <cuda_runtime.h>
 
 using namespace graphchi;
 using namespace std;
@@ -42,20 +43,7 @@ struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> 
 	/**
 	*  Vertex update function.
 	*/
-	//__global__ void update(int *inc, int *outc, int *rpt, int **res, int mxrptV )//int ***vData,int *Voutc, int** res)
-	void update2(int *inc, int *outc, int *rpt, int *res, int mxrptV, int numgoodV)
-		//graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) 
-	{
-		//int curVer = blockIdx.x * blockDim.x + threadIdx.x;
-		for (int curVer = 0; curVer<numgoodV; curVer++){
-			for (int i = 0; i<rpt[curVer]; i++){
-				int *edge_rand = new int;
-				*edge_rand = rand() % outc[curVer];
-				res[curVer*mxrptV + i] = *edge_rand;
-				//atomicAdd(rpt+(*edge_rand), 1);
-			}
-		}
-	}
+	
 	void update(graphchi_vertex<VertexDataType, EdgeDataType > &vertex, graphchi_context &gcontext) {
 
 		if (gcontext.iteration == 0) {
@@ -162,20 +150,7 @@ int main(int argc, const char ** argv) {
 	cout << "numWalks is " << numWalks << endl;
 
 	ofstream out("walks.txt");;
-	/*for (int i = 0; i<numV; i++){
-		vector<vid_t> walk; walk.push_back(i);
-		for (int j = 0; j<program.walks_per_source(); j++)
-			walks.push_back(walk);
-	}*/
-	// for(int i=0; i < min(int(walks.size()), 1000); i++) {
-	//     for (int j = 0; j < walks[i].size(); j++)
-	//         out << walks[i][j]<<" ";
-	//     out << std::endl;
-	// }
-	// out<<"#################################################################"<<endl;
-	// out<<"#################################################################"<<endl;
-	// out<<"#################################################################"<<endl;
-
+	
 	//go
 	graphchi_engine<VertexDataType, EdgeDataType> engine(filename, nshards, scheduler, m);
 	if (preexisting_shards) {
