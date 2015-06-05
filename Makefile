@@ -5,7 +5,7 @@ CPP = nvcc -gencode arch=compute_20,code=compute_20
 
 #CPPFLAGS = -g -O3 -w -fdiagnostics-color $(INCFLAGS)  -fopenmp -Wno-strict-aliasing  -m64 -fdump-class-hierarchy-all
 #CPPFLAGS = -w -fdiagnostics-color $(INCFLAGS)  -fopenmp -Wno-strict-aliasing  -m64  -std=c++11
-CPPFLAGS = -w -c $(INCFLAGS)  -Xcompiler -fdiagnostics-color -Xcompiler -fopenmp -Xcompiler -Wno-strict-aliasing  -m64 -Xcompiler -std=c++11
+CPPFLAGS = -w -g -G -c $(INCFLAGS)  -Xcompiler -fdiagnostics-color -Xcompiler -fopenmp -Xcompiler -Wno-strict-aliasing  -m64 -Xcompiler -std=c++11
 LINKERFLAGS = -lz
 DEBUGFLAGS = -g $(INCFLAGS)
 HEADERS=$(shell find src/ -name '*.hpp')

@@ -135,7 +135,7 @@ namespace graphchi {
         std::multimap<int, std::vector<int> > walks;
 		vector<vector<int> > completedWalks;
         const int _walks_per_source = 10, 
-            _steps_per_walk = 40;
+            _steps_per_walk = 10;
         /* Outputs */
         std::vector<ioutput<VertexDataType, EdgeDataType> *> outputs;
         
