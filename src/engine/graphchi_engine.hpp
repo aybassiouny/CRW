@@ -423,55 +423,7 @@ namespace graphchi {
                 for(int idx=0; idx <= (int)sub_interval_len; idx++) random_order[idx] = idx;
                 std::random_shuffle(random_order.begin(), random_order.end());
             }
-<<<<<<< HEAD
-<<<<<<< HEAD
-            std::cout<<"enable_deterministic_parallelism: "<<enable_deterministic_parallelism<<std::endl;
-             
             do {
-                omp_set_num_threads(exec_threads);
-                
-        #pragma omp parallel sections 
-                    {
-        #pragma omp section
-                        {
-        #pragma omp parallel for
-                        for(int idx=0; idx <= (int)sub_interval_len; idx++) {
-                                vid_t vid = sub_interval_st + (randomization ? random_order[idx] : idx);
-                                svertex_t & v = vertices[vid - sub_interval_st];
-                                std::cout<<exec_threads<<" "<< v.parallel_safe<<std::endl;
-                                if (exec_threads == 1 || v.parallel_safe) {
-                                    std::cout<<"is this visited?"<<std::endl;
-                                    if (!disable_vertexdata_storage)
-                                        v.dataptr = vertex_data_handler->vertex_data_ptr(vid);
-                                    if (v.scheduled) 
-                                        userprogram.update(v, chicontext);
-                                }
-                            }
-                        }
-        #pragma omp section
-                        {
-                            if (exec_threads > 1 && enable_deterministic_parallelism) {
-                                int nonsafe_count = 0;
-                                for(int idx=0; idx <= (int)sub_interval_len; idx++) {
-                                    vid_t vid = sub_interval_st + (randomization ? random_order[idx] : idx);
-                                    svertex_t & v = vertices[vid - sub_interval_st];
-                                    if (!v.parallel_safe && v.scheduled) {
-                                        std::cout<<"what about this??"<<std::endl;
-                                        if (!disable_vertexdata_storage)
-                                            v.dataptr = vertex_data_handler->vertex_data_ptr(vid);
-                                        userprogram.update(v, chicontext);
-                                        nonsafe_count++;
-                                    }
-                                }
-                                
-                                m.add("serialized-updates", nonsafe_count);
-                            }
-                        }
-=======
-            do {
-=======
-            do {
->>>>>>> addMemoryStuff
                 //ADDITION
                 int *inc, *outc, *minisch, *res;
                 std::vector<int> goodV;
@@ -488,25 +440,6 @@ namespace graphchi {
 						mxrptV = std::max(mxrptV, rptC);
                     }
                         //userprogram.update(v, chicontext);                    
-<<<<<<< HEAD
-                }
-                int numgoodV = goodV.size();
-				actualV.reserve(numgoodV);
-                inc = new int[numgoodV]; 
-                outc = new int[numgoodV];
-				minisch = new int[numgoodV];
-                res = new int[numgoodV*mxrptV];
-                std::fill(res, res+numgoodV*mxrptV, -1);
-                for(int i=0; i<numgoodV; i++){
-                    actualV.push_back(vertices[goodV[i]]);
-                    inc[i] = vertices[goodV[i]].inc;
-                    outc[i] = vertices[goodV[i]].outc;
-                    int srchVal = goodV[i]+sub_interval_st;
-                    int rptC = walks.count(srchVal);
-                    minisch[i] = rptC;
->>>>>>> addMemoryStuff
-                }
-=======
                 }
                 int numgoodV = goodV.size();
 				actualV.reserve(numgoodV);
@@ -523,7 +456,6 @@ namespace graphchi {
                     int rptC = walks.count(srchVal);
                     minisch[i] = rptC;
                 }
->>>>>>> addMemoryStuff
                 callUpdate2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
                 //userprogram.update2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
                 for(int i=0; i<numgoodV; i++){

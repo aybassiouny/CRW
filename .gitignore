@@ -4,3 +4,4 @@ bin/
 RW
 .setttings/
 trash/
+*.orig
