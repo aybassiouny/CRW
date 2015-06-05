@@ -424,6 +424,7 @@ namespace graphchi {
                 std::random_shuffle(random_order.begin(), random_order.end());
             }
 <<<<<<< HEAD
+<<<<<<< HEAD
             std::cout<<"enable_deterministic_parallelism: "<<enable_deterministic_parallelism<<std::endl;
              
             do {
@@ -468,6 +469,9 @@ namespace graphchi {
                         }
 =======
             do {
+=======
+            do {
+>>>>>>> addMemoryStuff
                 //ADDITION
                 int *inc, *outc, *minisch, *res;
                 std::vector<int> goodV;
@@ -484,6 +488,7 @@ namespace graphchi {
 						mxrptV = std::max(mxrptV, rptC);
                     }
                         //userprogram.update(v, chicontext);                    
+<<<<<<< HEAD
                 }
                 int numgoodV = goodV.size();
 				actualV.reserve(numgoodV);
@@ -501,6 +506,24 @@ namespace graphchi {
                     minisch[i] = rptC;
 >>>>>>> addMemoryStuff
                 }
+=======
+                }
+                int numgoodV = goodV.size();
+				actualV.reserve(numgoodV);
+                inc = new int[numgoodV]; 
+                outc = new int[numgoodV];
+				minisch = new int[numgoodV];
+                res = new int[numgoodV*mxrptV];
+                std::fill(res, res+numgoodV*mxrptV, -1);
+                for(int i=0; i<numgoodV; i++){
+                    actualV.push_back(vertices[goodV[i]]);
+                    inc[i] = vertices[goodV[i]].inc;
+                    outc[i] = vertices[goodV[i]].outc;
+                    int srchVal = goodV[i]+sub_interval_st;
+                    int rptC = walks.count(srchVal);
+                    minisch[i] = rptC;
+                }
+>>>>>>> addMemoryStuff
                 callUpdate2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
                 //userprogram.update2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
                 for(int i=0; i<numgoodV; i++){
