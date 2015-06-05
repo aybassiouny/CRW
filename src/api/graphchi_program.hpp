@@ -34,6 +34,7 @@
 
 #include "api/graph_objects.hpp"
 #include "api/graphchi_context.hpp"
+#include <cuda_runtime.h>
 
 namespace graphchi {
     
@@ -84,7 +85,10 @@ namespace graphchi {
         /**
          * Update function.
          */
-        virtual void update(vertex_t &v, graphchi_context &gcontext)  = 0;    
+        virtual void update(vertex_t &v, graphchi_context &gcontext)  = 0;
+        
+        //virtual void update2(int *inc, int *outc, int *rpt, int *res, int *mxrptV, int *numgoodV )=0;
+        //virtual void update2(int *inc, int *outc, int *rpt, int *res, int *mxrptV, int *numgoodV )=0;    
     };
 
 }

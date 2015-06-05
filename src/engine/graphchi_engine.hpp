@@ -40,6 +40,9 @@
 #include <omp.h>
 #include <vector>
 #include <sys/time.h>
+#include <algorithm>
+#include <map>
+#include <vector>
 
 #include "api/chifilenames.hpp"
 #include "api/graph_objects.hpp"
@@ -56,6 +59,11 @@
 #include "util/pthread_tools.hpp"
 #include "output/output.hpp"
 
+#include <cuda_runtime.h>
+#include "updateFunc.h"
+
+using namespace std;
+
 namespace graphchi {
     
     
@@ -67,7 +75,7 @@ namespace graphchi {
         typedef sliding_shard<VertexDataType, EdgeDataType, svertex_t> slidingshard_t;
         typedef memory_shard<VertexDataType, EdgeDataType, svertex_t> memshard_t;
         
-    protected:
+    public:
         std::string base_filename;
         int nshards;
         
@@ -113,6 +121,7 @@ namespace graphchi {
         int iter;
         int niters;
         int exec_interval;
+        int *rpt;
         size_t nupdates;
         size_t nedges;
         size_t work; // work is the number of edges processed
@@ -122,6 +131,11 @@ namespace graphchi {
         bool reset_vertexdata;
         bool save_edgesfiles_after_inmemmode;
         
+        //ADDITION
+        std::multimap<int, std::vector<int> > walks;
+		vector<vector<int> > completedWalks;
+        const int _walks_per_source = 10, 
+            _steps_per_walk = 10;
         /* Outputs */
         std::vector<ioutput<VertexDataType, EdgeDataType> *> outputs;
         
@@ -395,6 +409,7 @@ namespace graphchi {
         
         virtual void exec_updates(GraphChiProgram<VertexDataType, EdgeDataType, svertex_t> &userprogram,
                           std::vector<svertex_t> &vertices) {
+                          
             metrics_entry me = m.start_time();
             size_t nvertices = vertices.size();
             if (!enable_deterministic_parallelism) {
@@ -408,6 +423,7 @@ namespace graphchi {
                 for(int idx=0; idx <= (int)sub_interval_len; idx++) random_order[idx] = idx;
                 std::random_shuffle(random_order.begin(), random_order.end());
             }
+<<<<<<< HEAD
             std::cout<<"enable_deterministic_parallelism: "<<enable_deterministic_parallelism<<std::endl;
              
             do {
@@ -450,7 +466,105 @@ namespace graphchi {
                                 m.add("serialized-updates", nonsafe_count);
                             }
                         }
+=======
+            do {
+                //ADDITION
+                int *inc, *outc, *minisch, *res;
+                std::vector<int> goodV;
+                std::vector<svertex_t> actualV;
+                int rptV=0, mxrptV = 0;
+                for(int idx=0; idx <= (int)sub_interval_len; idx++) {
+                    vid_t vid = sub_interval_st + (randomization ? random_order[idx] : idx);
+                    //svertex_t & v = vertices[vid - sub_interval_st];
+                    if (vertices[vid - sub_interval_st].scheduled){
+                        int curV = vid - sub_interval_st; 
+                        goodV.push_back(curV);
+                        int rptC = walks.count(vid);
+                        if(rptC>0) rptV++;
+						mxrptV = std::max(mxrptV, rptC);
+                    }
+                        //userprogram.update(v, chicontext);                    
                 }
+                int numgoodV = goodV.size();
+				actualV.reserve(numgoodV);
+                inc = new int[numgoodV]; 
+                outc = new int[numgoodV];
+				minisch = new int[numgoodV];
+                res = new int[numgoodV*mxrptV];
+                std::fill(res, res+numgoodV*mxrptV, -1);
+                for(int i=0; i<numgoodV; i++){
+                    actualV.push_back(vertices[goodV[i]]);
+                    inc[i] = vertices[goodV[i]].inc;
+                    outc[i] = vertices[goodV[i]].outc;
+                    int srchVal = goodV[i]+sub_interval_st;
+                    int rptC = walks.count(srchVal);
+                    minisch[i] = rptC;
+>>>>>>> addMemoryStuff
+                }
+                callUpdate2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
+                //userprogram.update2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
+                for(int i=0; i<numgoodV; i++){
+                    if(minisch[i]>0){
+                        for(int j=0; j<minisch[i]; j++){
+                            int srchVal = goodV[i]+sub_interval_st;
+                            auto it = walks.find(srchVal);
+                            std::vector<int> tempV = it->second;
+							auto myE = actualV[i].outedge(res[i*mxrptV + j]);
+                            int resV = myE->vertex_id();
+                            tempV.push_back(resV);
+							if (tempV.size() == _steps_per_walk)
+								completedWalks.push_back(tempV);
+							else{
+								scheduler->add_task(resV);
+								walks.insert(std::make_pair(resV, tempV));
+							}
+							walks.erase(it);
+                        }
+                    }
+               } 
+               
+               
+               delete[] inc;
+               delete[] outc;
+               delete[] minisch;
+               delete[] res;
+                // update(int *inc, int *outc, int *rpt, int **res )/
+        //#pragma omp parallel sections 
+        //             {
+        // //#pragma omp section
+        //                 {
+        // //#pragma omp parallel for
+        //                 for(int idx=0; idx <= (int)sub_interval_len; idx++) {
+        //                         vid_t vid = sub_interval_st + (randomization ? random_order[idx] : idx);
+        //                         svertex_t & v = vertices[vid - sub_interval_st];
+        //                         
+        //                         if (exec_threads == 1 || v.parallel_safe) {
+        //                             if (!disable_vertexdata_storage)
+        //                                 v.dataptr = vertex_data_handler->vertex_data_ptr(vid);
+        //                             if (v.scheduled) 
+        //                                 userprogram.update(v, chicontext);
+        //                         }
+        //                     }
+        //                 }
+        // //#pragma omp section
+        //                 {
+        //                     if (exec_threads > 1 && enable_deterministic_parallelism) {
+        //                         int nonsafe_count = 0;
+        //                         for(int idx=0; idx <= (int)sub_interval_len; idx++) {
+        //                             vid_t vid = sub_interval_st + (randomization ? random_order[idx] : idx);
+        //                             svertex_t & v = vertices[vid - sub_interval_st];
+        //                             if (!v.parallel_safe && v.scheduled) {
+        //                                 if (!disable_vertexdata_storage)
+        //                                     v.dataptr = vertex_data_handler->vertex_data_ptr(vid);
+        //                                 userprogram.update(v, chicontext);
+        //                                 nonsafe_count++;
+        //                             }
+        //                         }
+        //                         
+        //                         m.add("serialized-updates", nonsafe_count);
+        //                     }
+        //                 }
+        //         }
             } while (userprogram.repeat_updates(chicontext));
             
             m.stop_time(me, "execute-updates");
@@ -777,8 +891,19 @@ namespace graphchi {
             /* Print configuration */
             print_config();
             
-            
+            //ADDITONS
+            rpt = new int[num_vertices()]; 
+            std::fill(rpt, rpt+num_vertices(), 0);
             /* Main loop */
+            
+            //ADDITION
+            for(int i=0; i<num_vertices(); i++){
+                std::vector<int> tempV;
+                tempV.push_back(i);
+                for(int j=0; j<_walks_per_source; j++)
+                    walks.insert(std::make_pair(i, tempV));
+            }
+            
             for(iter=0; iter < niters; iter++) {
                 logstream(LOG_INFO) << "Start iteration: " << iter << std::endl;
                 

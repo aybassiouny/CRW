@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <zlib.h>
+//#include <QtZlib/zlib.h>
  
 
 // Reads given number of bytes to a buffer
