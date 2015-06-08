@@ -1,32 +1,28 @@
-INCFLAGS = -I/usr/local/include/ -I./src/ -I./example_apps
+INCFLAGS = -I/usr/local/include/ -I./graphchi/ -I./src
 
-<<<<<<< HEAD
-CPP = g++
-CPPFLAGS = -g -O3 -fdiagnostics-color $(INCFLAGS)  -fopenmp -Wall -Wno-strict-aliasing  -m64
-=======
+
 #CPP = g++
 CPP = nvcc -gencode arch=compute_20,code=compute_20
 
 #CPPFLAGS = -g -O3 -w -fdiagnostics-color $(INCFLAGS)  -fopenmp -Wno-strict-aliasing  -m64 -fdump-class-hierarchy-all
 #CPPFLAGS = -w -fdiagnostics-color $(INCFLAGS)  -fopenmp -Wno-strict-aliasing  -m64  -std=c++11
 CPPFLAGS = -w -g -G -c $(INCFLAGS)  -Xcompiler -fdiagnostics-color -Xcompiler -fopenmp -Xcompiler -Wno-strict-aliasing  -m64 -Xcompiler -std=c++11
->>>>>>> addMemoryStuff
+
 LINKERFLAGS = -lz
 DEBUGFLAGS = -g $(INCFLAGS)
-HEADERS=$(shell find src/ -name '*.hpp')
+HEADERS=$(shell find graphchi/ -name '*.hpp')
 
 
 all: apps 
 #apps: example_apps/mRW
-apps: example_apps/RW
-als: example_apps/matrix_factorization/als_edgefactors  example_apps/matrix_factorization/als_vertices_inmem
-tests: tests/basic_smoketest tests/bulksync_functional_test tests/dynamicdata_smoketest tests/test_dynamicedata_loader
+#apps: src/RW
+apps: src/TestDWC
 
 echo:
 	echo $(HEADERS)
 clean:
 	@rm -rf bin/example_apps/RW
-	@rm -rf *.html graphchi_metrics.txt log.txt walks.txt out.txt *.o RWC
+	@rm -rf *.html graphchi_metrics.txt log.txt walks.txt out.txt *.o RWC TestDWC
 	@rm -rf  *.numvertices 
 	@rm -rf *.adjidx 
 	@rm -rf *.adj 
@@ -37,56 +33,11 @@ clean:
 	@rm -rf  *.intervals
 	@rm -rf blogcatalog.txt.dynamic..Z.e4B.1_2_blockdir_1048576 simpAdjList.txt.dynamic..Z.e4B.1_2_blockdir_1048576
 	@rm -rf blogcatalog.txt.dynamic..Z.e4B.0_2_blockdir_1048576 simpAdjList.txt.dynamic..Z.e4B.0_2_blockdir_1048576
+	@rm -rf blogcatalog.txt.edata..Z.e4B.0_1_blockdir_1048576
 
-blocksplitter: src/preprocessing/blocksplitter.cpp $(HEADERS)
-	$(CPP) $(CPPFLAGS) src/preprocessing/blocksplitter.cpp -o bin/blocksplitter $(LINKERFLAGS)
-
-sharder_basic: src/preprocessing/sharder_basic.cpp $(HEADERS)
-	@mkdir -p bin
-	$(CPP) $(CPPFLAGS) src/preprocessing/sharder_basic.cpp -o bin/sharder_basic $(LINKERFLAGS)
-
-#example_apps/% : example_apps/%.cpp $(HEADERS)
-example_apps/% : example_apps/%.cpp $(HEADERS)
+#src/% : src/%.cpp $(HEADERS)
+src/% : src/%.cpp $(HEADERS)
 	@mkdir -p bin/$(@D)
-	$(CPP) $(CPPFLAGS) $(DEBUGFLAGS) -Iexample_apps/  $@.cpp $(LINKERFLAGS) 
-	#$(CPP) $(CPPFLAGS) $(DEBUGFLAGS) -Iexample_apps/  $@.cpp -o bin/$@ $(LINKERFLAGS) 
-
-
-
-myapps/% : myapps/%.cpp $(HEADERS)
-	@mkdir -p bin/$(@D)
-	$(CPP) $(CPPFLAGS) -Imyapps/ $@.cpp -o bin/$@ $(LINKERFLAGS)
-
-tests/%: src/tests/%.cpp $(HEADERS)
-	@mkdir -p bin/$(@D)
-	$(CPP) $(CPPFLAGS) src/$@.cpp -o bin/$@	$(LINKERFLAGS)
-
-
-graphlab_als: example_apps/matrix_factorization/graphlab_gas/als_graphlab.cpp
-	$(CPP) $(CPPFLAGS) example_apps/matrix_factorization/graphlab_gas/als_graphlab.cpp -o bin/graphlab_als $(LINKERFLAGS)
-
-cf:
-	cd toolkits/collaborative_filtering/; bash ./test_eigen.sh; 
-	if [ $$? -ne 0 ]; then exit 1; fi
-	cd toolkits/collaborative_filtering/; make 
-cf_test:
-	cd toolkits/collaborative_filtering/; make test; 
-cfd:
-	cd toolkits/collaborative_filtering/; make -f Makefile.debug
-
-parsers:
-	cd toolkits/parsers/; make
-parsersd:
-	cd toolkits/parsers/; make -f Makefile.debug
-ga:
-	cd toolkits/graph_analytics/; make
-ta:
-	cd toolkits/text_analysis/; make
-
-docs: */**
-	doxygen conf/doxygen/doxygen.config
-
-
-	
-
+	$(CPP) $(CPPFLAGS) $(DEBUGFLAGS) -Isrc/  $@.cpp src/DeepWalk.cpp src/word2vec.cpp $(LINKERFLAGS) 
+	#$(CPP) $(CPPFLAGS) $(DEBUGFLAGS) -Isrc/  $@.cpp -o bin/$@ $(LINKERFLAGS) 
 	

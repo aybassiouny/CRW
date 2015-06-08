@@ -1,11 +1,12 @@
 make clean
-nvcc -c example_apps/updateFunc.cu -gencode arch=compute_20,code=compute_20
+nvcc -c src/updateFunc.cu -gencode arch=compute_20,code=compute_20
 make
+nvcc -gencode arch=compute_20,code=compute_20 -lcudart -lz -Xcompiler -fopenmp -o TestDWC TestDWC.o DeepWalk.o updateFunc.o word2vec.o
+./TestDWC
 
-nvcc -gencode arch=compute_20,code=compute_20 -lcudart -lz -Xcompiler -fopenmp -o RWC RW.o updateFunc.o 
+#nvcc -gencode arch=compute_20,code=compute_20 -lcudart -lz -Xcompiler -fopenmp -o RWC RW.o updateFunc.o 
 #./RWC --file=simpAdjList.txt --filetype=adjlist --execthreads=8 --numV=10 
-./RWC --file=blogcatalog.txt --filetype=adjlist --execthreads=8 --numV=10312 
-#bin/example_apps/RW --file=simpAdjList.txt --filetype=adjlist --execthreads=8 --numV=10 
-#bin/example_apps/mRW > log.txt
-#bin/example_apps/RW --file=blogcatalog.txt --filetype=adjlist --execthreads=8 --numV=10312 > log.txt
-
+#./TestDWC --file=blogcatalog.txt --filetype=adjlist --execthreads=8 --numV=10312 
+#bin/src/RW --file=simpAdjList.txt --filetype=adjlist --execthreads=8 --numV=10 
+#bin/src/mRW > log.txt
+#bin/src/RW --file=blogcatalog.txt --filetype=adjlist --execthreads=8 --numV=10312 > log.txt
