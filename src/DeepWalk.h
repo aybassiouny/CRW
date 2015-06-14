@@ -2,25 +2,28 @@
 #define _DeepWalk
 
 #include "stdafx.h"
+
+#include "util/toplist.hpp"
 #include "Walk.h"
 #include "word2vec.h"
 
 class DeepWalk{
 public:
-	int walks_num, walk_length, feat_num;
-	vector<Walk> Walks;
-	vector<int> nodes_ids;
-	string graph_filename;
+	int _walks_per_source, _steps_per_walk;
+	int feat_num;
+	std::vector<Walk> Walks;
+	std::vector<int> nodes_ids;
+	std::string graph_filename;
 	int vertices_num;
 	int iterations_number;
 	
 	//DeepWalk(std::string fNameGraph, int walks_per_node_num, int in_walk_length, int in_feat_num, bool graphFile_binary);
 	DeepWalk(std::string fNameGraph, int walks_per_node_num, int in_walk_length, int in_feat_num, bool graphFile_binary,  int _vertices_num, int _iterations_number);
 	bool corpus_build();
-	bool corpus_save(string outFile_name);
-	bool fv_gen_and_save(string corpusFile_name, string fvFile_name);
+	bool corpus_save(std::string outFile_name);
+	bool fv_gen_and_save(std::string corpusFile_name, std::string fvFile_name);
 	Walk random_walk_gen(int walk_length, int srand_val, int snode_id);
-	vector<Walk> walks_gen_cuda(int walk_length, int srand_val, int snode_id);
+	std::vector<Walk> walks_gen_cuda(int walk_length, int srand_val, int snode_id);
 	Walk random_walk_gen_cuda(int walk_length, int srand_val, int snode_id);
 
 

@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <ctime>        // std::time
 #include <cstdlib>      // std::rand, std::srand
+#include <cstring>
+#include <string> 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +20,7 @@
 #include <thread>
 
 #include <cuda_runtime.h>
-#include "graphchi_basic_includes.hpp"
-#include "api/dynamicdata/chivector.hpp"
-#include "util/toplist.hpp"
+// #include "graphchi_basic_includes.hpp"
+// #include "api/dynamicdata/chivector.hpp"
+// #include "util/toplist.hpp"
 #include <utility>

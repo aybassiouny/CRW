@@ -6,7 +6,7 @@
 class Walk{
 public:
 	int walks_num;
-	vector<int> words;
+	std::vector<int> words;
 };
 
 

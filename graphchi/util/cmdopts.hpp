@@ -47,6 +47,7 @@ namespace graphchi {
 #define VARIABLE_IS_NOT_USED
 #endif
     
+    //static bool _cmd_configured = false;
     static bool _cmd_configured = false;
     
     static int _argc;

@@ -12,8 +12,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "stdafx.h"
 #include "word2vec.h"
+
+using namespace std;
 
 #define MAX_STRING 100
 #define EXP_TABLE_SIZE 1000
