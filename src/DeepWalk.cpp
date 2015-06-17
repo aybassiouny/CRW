@@ -1,4 +1,4 @@
-#define DYNAMICEDATA 1
+//#define DYNAMICEDATA 1
 
 #include "stdafx.h"
 #include "DeepWalk.h"
@@ -11,8 +11,8 @@ using namespace std;
 
 
 typedef unsigned int VertexDataType;
-//typedef unsigned int EdgeDataType;
-typedef chivector<vid_t>  EdgeDataType;
+typedef unsigned int EdgeDataType;
+//typedef chivector<vid_t>  EdgeDataType;
 
 struct RandomWalkProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
 	

@@ -10,11 +10,12 @@ niothreads = 1
 #cachesize_mb = 1000
 
 # Good for 4 gigs
-membudget_mb = 800
+membudget_mb = 100
 cachesize_mb = 0
 
 # I/O settings
 io.blocksize = 1048576 
+#io.blocksize = 548576 
 mmap = 1  # Use mmaped files where applicable
 
 

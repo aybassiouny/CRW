@@ -1,8 +1,10 @@
-make clean
-nvcc -c src/updateFunc.cu -gencode arch=compute_20,code=compute_20
+#make clean
+rm *.o ./TestDWC
+nvcc -c -g -G src/updateFunc.cu -gencode arch=compute_20,code=compute_20
 make
-nvcc -gencode arch=compute_20,code=compute_20 -lcudart -lz -Xcompiler -fopenmp -o TestDWC TestDWC.o DeepWalk.o updateFunc.o word2vec.o
-./TestDWC blogcatalog.txt
+nvcc -O0 -g -G -gencode arch=compute_20,code=compute_20 -lcudart -lz -Xcompiler -fopenmp -o TestDWC TestDWC.o DeepWalk.o updateFunc.o word2vec.o
+./TestDWC minitwitter.txt
+#./TestDWC simpAdjList.txt
 
 #nvcc -gencode arch=compute_20,code=compute_20 -lcudart -lz -Xcompiler -fopenmp -o RWC RW.o updateFunc.o 
 #./RWC --file=simpAdjList.txt --filetype=adjlist --execthreads=8 --numV=10 

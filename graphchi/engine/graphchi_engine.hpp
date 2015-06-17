@@ -121,7 +121,7 @@ namespace graphchi {
         int iter;
         int niters;
         int exec_interval;
-        int *rpt;
+        //int *rpt;
         size_t nupdates;
         size_t nedges;
         size_t work; // work is the number of edges processed
@@ -424,29 +424,28 @@ namespace graphchi {
             }
             do {
                 //ADDITION
-                int *inc, *outc, *minisch, *res;
+                int *inc, *outc, *minisch, *res, *resloc;
                 std::vector<int> goodV;
                 std::vector<svertex_t> actualV;
-                int rptV=0, mxrptV = 0;
+                int rptV=0, mxrptV = 0, ressz=0;
                 for(int idx=0; idx <= (int)sub_interval_len; idx++) {
                     vid_t vid = sub_interval_st + (randomization ? random_order[idx] : idx);
-                    //svertex_t & v = vertices[vid - sub_interval_st];
                     if (vertices[vid - sub_interval_st].scheduled){
                         int curV = vid - sub_interval_st; 
                         goodV.push_back(curV);
                         int rptC = walks.count(vid);
-                        if(rptC>0) rptV++;
-						mxrptV = std::max(mxrptV, rptC);
-                    }
-                        //userprogram.update(v, chicontext);                    
+                        ressz+=rptC;
+                    }                   
                 }
                 int numgoodV = goodV.size();
 				actualV.reserve(numgoodV);
                 inc = new int[numgoodV]; 
                 outc = new int[numgoodV];
 				minisch = new int[numgoodV];
-                res = new int[numgoodV*mxrptV];
-                std::fill(res, res+numgoodV*mxrptV, -1);
+                resloc = new int[numgoodV];
+                
+                res = new int[ressz];
+                std::fill(res, res+ressz, -1);
                 for(int i=0; i<numgoodV; i++){
                     actualV.push_back(vertices[goodV[i]]);
                     inc[i] = vertices[goodV[i]].inc;
@@ -454,8 +453,12 @@ namespace graphchi {
                     int srchVal = goodV[i]+sub_interval_st;
                     int rptC = walks.count(srchVal);
                     minisch[i] = rptC;
+                    if(i==0) resloc[i] =0;
+                    else resloc[i] = resloc[i-1] + minisch[i-1];
                 }
-                callUpdate2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
+                cout<<ressz<<endl;
+                //resloc[numgoodV] = resloc[numgoodV-1] + minisch[numgoodV-1];
+                callUpdate2 (inc,  outc,  minisch,  res, resloc, ressz, numgoodV );
                 //userprogram.update2 (inc,  outc,  minisch,  res,  mxrptV, numgoodV );
                 for(int i=0; i<numgoodV; i++){
                     if(minisch[i]>0){
@@ -463,7 +466,15 @@ namespace graphchi {
                             int srchVal = goodV[i]+sub_interval_st;
                             auto it = walks.find(srchVal);
                             std::vector<int> tempV = it->second;
-							auto myE = actualV[i].outedge(res[i*mxrptV + j]);
+                            if(actualV[i].outc==0){
+                               completedWalks.push_back(tempV);
+                               walks.erase(it);
+                               continue;
+                            }
+                            if(res[resloc[i]+j]<0 || res[resloc[i]+j]>= actualV[i].outc)
+                                std::cout<<"ERROR WITH VERTIX i="<<i<<" j = "<<j<<" resloc[i] = "<<resloc[i]<<" res = "
+                                <<res[resloc[i]+j]<<" outc="<<actualV[i].outc<<std::endl;
+							auto myE = actualV[i].outedge(res[resloc[i]+j]);
                             int resV = myE->vertex_id();
                             tempV.push_back(resV);
 							if (tempV.size() == _steps_per_walk)
@@ -481,6 +492,7 @@ namespace graphchi {
                delete[] inc;
                delete[] outc;
                delete[] minisch;
+               delete[] resloc;
                delete[] res;
             } while (userprogram.repeat_updates(chicontext));
             
@@ -808,9 +820,11 @@ namespace graphchi {
             /* Print configuration */
             print_config();
             
+            
+            
             //ADDITONS
-            rpt = new int[num_vertices()]; 
-            std::fill(rpt, rpt+num_vertices(), 0);
+            //rpt = new int[num_vertices()]; 
+            //std::fill(rpt, rpt+num_vertices(), 0);
             /* Main loop */
             
             //ADDITION
@@ -1172,7 +1186,7 @@ namespace graphchi {
 #ifdef DYNAMICEDATA
                     write_block_uncompressed_size(block_filename, len);
 #endif
-                    
+                    free(buf);
                 }
             }
         }
