@@ -60,6 +60,7 @@ bool DeepWalk::corpus_build()
 {			
 	int argc = 3;
 	const char* argv[] = { "blabla", "--filetype=adjlist", "--execthreads=8" };
+	//const char* argv[] = { "blabla", "--filetype=edgelist", "--execthreads=8" };
 	graphchi_init(argc, argv);
 	
 	metrics m("randomwalk");
@@ -71,8 +72,6 @@ bool DeepWalk::corpus_build()
 	//get_option_string("filetype", "adjlist");
 	int nshards = convert_if_notexists<vid_t>(graph_filename, get_option_string("nshards", "auto"), preexisting_shards);
 	//int nshards = convert_if_notexists<vid_t>(graph_filename, get_option_string("nshards", "2"), preexisting_shards);
-
-	//--filetype=adjlist --execthreads=8
 	
 	
 	/* Run */

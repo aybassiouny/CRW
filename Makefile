@@ -31,9 +31,8 @@ clean:
 	@rm -rf *.deltalog
 	@rm -rf *.vout
 	@rm -rf  *.intervals
-	@rm -rf blogcatalog.txt.dynamic..Z.e4B.1_2_blockdir_1048576 simpAdjList.txt.dynamic..Z.e4B.1_2_blockdir_1048576 simpAdjList.txt.edata..Z.e4B.1_2_blockdir_1048576
-	@rm -rf blogcatalog.txt.dynamic..Z.e4B.0_2_blockdir_1048576 simpAdjList.txt.dynamic..Z.e4B.0_2_blockdir_1048576 simpAdjList.txt.edata..Z.e4B.0_2_blockdir_1048576
-	@rm -rf blogcatalog.txt.edata..Z.e4B.0_1_blockdir_1048576 simpAdjList.txt.edata..Z.e4B.0_1_blockdir_1048576
+	@rm -rf *.edata*
+	@rm -rf *.dynamic..*
 
 #src/% : src/%.cpp $(HEADERS)
 src/% : src/%.cpp $(HEADERS)
