@@ -474,6 +474,7 @@ namespace graphchi {
                             if(res[resloc[i]+j]<0 || res[resloc[i]+j]>= actualV[i].outc)
                                 std::cout<<"ERROR WITH VERTIX i="<<i<<" j = "<<j<<" resloc[i] = "<<resloc[i]<<" res = "
                                 <<res[resloc[i]+j]<<" outc="<<actualV[i].outc<<std::endl;
+                            if(res[resloc[i]+j]== actualV[i].outc) res[resloc[i]+j]--;
 							auto myE = actualV[i].outedge(res[resloc[i]+j]);
                             int resV = myE->vertex_id();
                             tempV.push_back(resV);
