@@ -10,7 +10,7 @@ niothreads = 1
 #cachesize_mb = 1000
 
 # Good for 4 gigs
-membudget_mb = 100
+membudget_mb = 800
 cachesize_mb = 0
 
 # I/O settings

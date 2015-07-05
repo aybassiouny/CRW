@@ -18,8 +18,8 @@ public:
 	int iterations_number;
 	
 	//DeepWalk(std::string fNameGraph, int walks_per_node_num, int in_walk_length, int in_feat_num, bool graphFile_binary);
-	DeepWalk(std::string fNameGraph, int walks_per_node_num, int in_walk_length, int in_feat_num, bool graphFile_binary,  int _vertices_num, int _iterations_number);
-	bool corpus_build();
+	DeepWalk(std::string fNameGraph, int walks_per_node_num, int in_walk_length, int in_feat_num, bool graphFile_binary, int _iterations_number);
+	bool corpus_build(std::string outFile_name, std::string filetype);
 	bool corpus_save(std::string outFile_name);
 	bool fv_gen_and_save(std::string corpusFile_name, std::string fvFile_name);
 	Walk random_walk_gen(int walk_length, int srand_val, int snode_id);

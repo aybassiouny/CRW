@@ -135,6 +135,8 @@ namespace graphchi {
         std::multimap<int, std::vector<int> > walks;
 		vector<vector<int> > completedWalks;
         int _walks_per_source, _steps_per_walk;
+        int rotations_num, rotation_cur;
+        
         /* Outputs */
         std::vector<ioutput<VertexDataType, EdgeDataType> *> outputs;
         
@@ -762,8 +764,10 @@ namespace graphchi {
          * parameter. 
          * @param niters number of iterations
          */
-        void run(GraphChiProgram<VertexDataType, EdgeDataType, svertex_t> &userprogram, int _niters) {
+        void run(GraphChiProgram<VertexDataType, EdgeDataType, svertex_t> &userprogram, int _niters, int _rotations_num, int _rotation_cur) {
             m.start_time("runtime");
+            rotations_num = _rotations_num;
+            rotation_cur = _rotation_cur;
             if (degree_handler == NULL)
                 degree_handler = create_degree_handler();
             iomgr->set_cache_budget(get_option_long("cachesize_mb", 0) * 1024L * 1024L);
@@ -829,7 +833,10 @@ namespace graphchi {
             /* Main loop */
             
             //ADDITION
-            for(int i=0; i<num_vertices(); i++){
+            int v_start =num_vertices()*rotation_cur/rotations_num;
+            int v_num = num_vertices()/rotations_num;
+            int v_end = min(v_start+v_num, int(num_vertices())) -1;
+            for(int i=v_start; i<=v_end; i++){
                 std::vector<int> tempV;
                 tempV.push_back(i);
                 for(int j=0; j<_walks_per_source; j++)
@@ -929,7 +936,7 @@ namespace graphchi {
                                                                 size_t(membudget_mb) * 1024 * 1024);
                         assert(sub_interval_en >= sub_interval_st);
                         
-                        logstream(LOG_INFO) << "Iteration " << iter << "/" << (niters - 1) << ", subinterval: " << sub_interval_st << " - " << sub_interval_en << std::endl;
+                        logstream(LOG_INFO) <<"Rotation "<<rotation_cur<<"/"<<(rotations_num-1)<< " Iteration " << iter << "/" << (niters - 1) << ", subinterval: " << sub_interval_st << " - " << sub_interval_en << std::endl;
                                                 
                         bool any_vertex_scheduled = is_any_vertex_scheduled(sub_interval_st, sub_interval_en);
                         if (!any_vertex_scheduled) {
