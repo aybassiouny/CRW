@@ -22,7 +22,7 @@ echo:
 	echo $(HEADERS)
 clean:
 	@rm -rf bin/example_apps/RW
-	@rm -rf *.html graphchi_metrics.txt log.txt walks.txt out.txt *.o RWC TestDWC
+	@rm -rf *.html graphchi_metrics.txt log.txt walks.txt out.txt fv.txt *.o RWC TestDWC
 	@rm -rf  *.numvertices 
 	@rm -rf *.adjidx 
 	@rm -rf *.adj 

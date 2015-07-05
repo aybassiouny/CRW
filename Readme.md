@@ -1,6 +1,6 @@
 Random Walk Cuda
 -----------------
-1. In order to install run "./install.sh" from root directory. You can either modify install.sh's last line with your arguments, or just run "./TestDWC <your arguments>"
+1. In order to generate binaries run "./install.sh" from root directory. 
 
 2. Current supported arguments are: TestDWC.exe <graph_file_name> <graph_file_type>
 <graph_file_name>: name of the graph file in ASCII
@@ -20,3 +20,5 @@ Random Walk Cuda
 (either adjlist or edgelist)
 
 4. For faster runs on machines with more memory, you can increase cashe size in conf/graphchi.local.conf by changing the value of membudget_mb (800 is good enough for a 4 gb machine).
+
+5. Run "make clean" in the root directory in order to remove all temporary files (essential in case you change membudget_mb).
